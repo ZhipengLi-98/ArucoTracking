@@ -1,0 +1,11 @@
+Model Information:
+* title:	Basket
+* source:	https://sketchfab.com/3d-models/basket-dc3d8c07769e4226833cbd01a2936939
+* author:	Santa Cruz Museum of Art and History (https://sketchfab.com/santacruzmah)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Basket" (https://sketchfab.com/3d-models/basket-dc3d8c07769e4226833cbd01a2936939) by Santa Cruz Museum of Art and History (https://sketchfab.com/santacruzmah) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
