@@ -60,7 +60,7 @@
 			// Detect markers
 			CvAruco.DetectMarkers (grayMat, dictionary, out corners, out ids, detectorParameters, out rejectedImgPoints);
 
-			CvAruco.DrawDetectedMarkers (mat, corners, ids);
+			// CvAruco.DrawDetectedMarkers (mat, corners, ids);
 
 			float markerSizeInMeters = 1f;
 

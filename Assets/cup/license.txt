@@ -1,0 +1,11 @@
+Model Information:
+* title:	Cup
+* source:	https://sketchfab.com/3d-models/cup-e66f5d5970584ed1a566860a50b14797
+* author:	FascinationKR7X (https://sketchfab.com/FascinationKR7X)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Cup" (https://sketchfab.com/3d-models/cup-e66f5d5970584ed1a566860a50b14797) by FascinationKR7X (https://sketchfab.com/FascinationKR7X) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

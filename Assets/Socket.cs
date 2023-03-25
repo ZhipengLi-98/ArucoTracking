@@ -39,7 +39,7 @@ public class Socket : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        tex = new Texture2D(640, 480, TextureFormat.RGB24, false);
+        tex = new Texture2D(640, 480, TextureFormat.RGBA32, false);
         rec = new UnityEngine.Rect(0, 0, tex.width, tex.height);
         objectCamera_original_pos = virtualBasket.transform.position;
         // objectCamera_original_pos = virtualBasket.transform.position;
@@ -108,7 +108,7 @@ public class Socket : MonoBehaviour
             bufTotal = new byte[dataSize];
         }
 
-        // print(dataSize);
+        print(dataSize);
         while (true)
         {
             int leftSize = dataSize - byLengthTotal;
@@ -131,7 +131,8 @@ public class Socket : MonoBehaviour
             {
                 break;
             }
-        }if (dataSize == 640 * 480 * 3 && !flag)
+        }
+        if (dataSize == 640 * 480 * 4 && !flag)
         {
             flag = true;
         }

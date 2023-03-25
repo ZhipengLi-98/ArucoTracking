@@ -1,0 +1,11 @@
+Model Information:
+* title:	Football/soccer ball
+* source:	https://sketchfab.com/3d-models/footballsoccer-ball-8ea03b460c3d429f9c73ff2d3382e72a
+* author:	alex.yefremov (https://sketchfab.com/alex.yefremov)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Football/soccer ball" (https://sketchfab.com/3d-models/footballsoccer-ball-8ea03b460c3d429f9c73ff2d3382e72a) by alex.yefremov (https://sketchfab.com/alex.yefremov) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

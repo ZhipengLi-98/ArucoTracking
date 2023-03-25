@@ -42,7 +42,15 @@ namespace PaperPlaneTools.AR {
 
 		private Dictionary<int, Vector3> positions = new Dictionary<int, Vector3>();
 		private Dictionary<int, Quaternion> rotations = new Dictionary<int, Quaternion>();
+
+		public Vector3 posOffset;
+		public Vector3 posOffset2;
+
+		private Vector3 lastObjPos;
+		private Quaternion lastObjRot;
+
 		public GameObject obj;
+		public GameObject plane;
 
 		Texture2D texture;
 
@@ -131,10 +139,21 @@ namespace PaperPlaneTools.AR {
 				amount++;			
 				rotTemp = Quaternion.Slerp(rotTemp, rot.Value, 1 / amount);
 			}
-			
+			if (lastObjPos != null)
+			{
+				posTemp = (posTemp + lastObjPos) / 2;
+			}
+			if (lastObjRot != null)
+			{
+				rotTemp = Quaternion.Slerp(rotTemp, lastObjRot, 1 / 2);
+			}
+			lastObjPos = posTemp;
+			lastObjRot = rotTemp;
 			obj.transform.localPosition = posTemp;
+			plane.transform.localPosition = posTemp + posOffset2;
 			// Quaternion.Euler(90, 0, 0) * 
 			obj.transform.localRotation = rotTemp;
+			plane.transform.localRotation = Quaternion.Euler(-rotTemp.eulerAngles[0], 0, 0);
 		}
 
 		private void ProcessMarkesWithSameId(MarkerObject markerObject, List<MarkerOnScene> gameObjects, List<int> foundedMarkers) {
