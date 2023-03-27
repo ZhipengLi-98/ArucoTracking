@@ -33,6 +33,9 @@ namespace PaperPlaneTools.AR
 		Texture2D tex;
 		UnityEngine.Rect rec;
 
+		private int width = 1280;
+		private int height = 720;
+
 		/// <summary>
 		/// Target surface to render WebCam stream
 		/// </summary>
@@ -131,7 +134,7 @@ namespace PaperPlaneTools.AR
 		protected virtual void Awake()
 		{
         	UnityThread.initUnityThread();  
-			tex = new Texture2D(640, 480, TextureFormat.RGB24, false);
+			tex = new Texture2D(width, height, TextureFormat.RGB24, false);
 			rec = new UnityEngine.Rect(0, 0, tex.width, tex.height);
 			// objectCamera_original_pos = virtualBasket.transform.position;
 			// objectCamera_original_pos = virtualBasket.transform.position;
@@ -256,7 +259,8 @@ namespace PaperPlaneTools.AR
 				{
 					break;
 				}
-			}if (dataSize == 640 * 480 * 3 && !flag)
+			}
+			if (dataSize == width * height * 3 && !flag)
 			{
 				flag = true;
 			}

@@ -23,11 +23,21 @@ namespace PaperPlaneTools.AR {
 			public GameObject gameObject = null;
 		}
 
+		[Serializable]
+		public class VirtualObject
+		{
+			public List<MarkerObject> markers;
+			public GameObject gameObject;
+			public Vector3 posOffset;
+			public Vector3 lastPos;
+			public Quaternion lastRot;
+		}
+
 		/// <summary>
 		/// List of possible markers
 		/// The list is set in Unity Inspector
 		/// </summary>
-		public List<MarkerObject> markers;
+		// public List<MarkerObject> markers;
 
 		/// <summary>
 		/// The marker detector
@@ -43,29 +53,27 @@ namespace PaperPlaneTools.AR {
 		private Dictionary<int, Vector3> positions = new Dictionary<int, Vector3>();
 		private Dictionary<int, Quaternion> rotations = new Dictionary<int, Quaternion>();
 
-		public Vector3 posOffset;
-		public Vector3 posOffset2;
-
-		private Vector3 lastObjPos;
-		private Quaternion lastObjRot;
-
-		public GameObject obj;
+		public Vector3 planeOffset;
 		public GameObject plane;
 
 		Texture2D texture;
+		
+		public List<VirtualObject> objects;
 
 		void Start () {
 			markerDetector = new MarkerDetector ();
-
-			foreach (MarkerObject markerObject in markers) {
-				gameObjects.Add(markerObject.markerId, new List<MarkerOnScene>());
+			foreach (VirtualObject virtualObject in objects)
+			{
+				foreach (MarkerObject markerObject in virtualObject.markers) {
+					gameObjects.Add(markerObject.markerId, new List<MarkerOnScene>());
+				}
 			}
-			texture = new Texture2D(640, 480);
+			texture = new Texture2D(1280, 720);
 		}
 
 		protected override void Awake() {
 			base.Awake();
-			texture = new Texture2D(640, 480);
+			texture = new Texture2D(1280, 720);
 			// int cameraIndex = -1;
 			// for (int i = 0; i < WebCamTexture.devices.Length; i++) {
 			// 	WebCamDevice webCamDevice = WebCamTexture.devices [i];
@@ -110,49 +118,74 @@ namespace PaperPlaneTools.AR {
 			List<int> markerIds = markerDetector.Detect (mat, width, height);
 
 			int count = 0;
-			foreach (MarkerObject markerObject in markers) {
+			foreach (VirtualObject virtualObject in objects)
+			{
 				List<int> foundedMarkers = new List<int>();
-				for (int i=0; i<markerIds.Count; i++) {
-					if (markerIds[i] == markerObject.markerId) {
-						foundedMarkers.Add(i);
-						count++;
+				foreach (MarkerObject markerObject in virtualObject.markers) {
+					for (int i=0; i<markerIds.Count; i++) {
+						if (markerIds[i] == markerObject.markerId) {
+							foundedMarkers.Add(i);
+							count++;
+						}
 					}
+					ProcessMarkesWithSameId(markerObject, gameObjects[markerObject.markerId], foundedMarkers);
 				}
-				ProcessMarkesWithSameId(markerObject, gameObjects[markerObject.markerId], foundedMarkers);
 			}
 			if (positions.Count == 0 || rotations.Count == 0)
 			{
 				return;
 			}
 			Vector3 posTemp = new Vector3(0, 0, 0);
+			Quaternion rotTemp = new Quaternion(0, 0, 0, 0);
+			int amount = 0;
+			foreach (VirtualObject virtualObject in objects)
+			{
+				if (virtualObject.markers.Count == 0)
+				{
+					continue;
+				}
+				posTemp = new Vector3(0, 0, 0);
+				foreach (MarkerObject marker in virtualObject.markers)
+				{
+					posTemp += positions[marker.markerId];
+				}
+				posTemp /= virtualObject.markers.Count;
+				if (virtualObject.lastPos != null)
+				{
+					posTemp = posTemp / 2 + virtualObject.lastPos / 2;
+				}
+				virtualObject.lastPos = posTemp;
+				virtualObject.gameObject.transform.position = posTemp + virtualObject.posOffset;
+
+				rotTemp = new Quaternion(0, 0, 0, 0);
+				amount = 0;
+				foreach (MarkerObject marker in virtualObject.markers)
+				{    
+					amount++;			
+					rotTemp = Quaternion.Slerp(rotTemp, rotations[marker.markerId], 1 / amount);
+				}
+				if (virtualObject.lastRot != null)
+				{
+					rotTemp = Quaternion.Slerp(rotTemp, virtualObject.lastRot, 1 / 2);
+				}
+				virtualObject.lastRot = rotTemp;
+				virtualObject.gameObject.transform.rotation = rotTemp;
+			}
+			
+			posTemp = new Vector3(0, 0, 0);
 			foreach (KeyValuePair<int, Vector3> pos in positions)
 			{
 				posTemp += pos.Value;
-				// print(pos.Key + " " + pos.Value);
 			}
 			posTemp /= positions.Count;
-			
-			Quaternion rotTemp = new Quaternion(0, 0, 0, 0);
-			int amount = 0;
+			rotTemp = new Quaternion(0, 0, 0, 0);
+			amount = 0;
 			foreach (KeyValuePair<int, Quaternion> rot in rotations)
 			{    
 				amount++;			
 				rotTemp = Quaternion.Slerp(rotTemp, rot.Value, 1 / amount);
 			}
-			if (lastObjPos != null)
-			{
-				posTemp = (posTemp + lastObjPos) / 2;
-			}
-			if (lastObjRot != null)
-			{
-				rotTemp = Quaternion.Slerp(rotTemp, lastObjRot, 1 / 2);
-			}
-			lastObjPos = posTemp;
-			lastObjRot = rotTemp;
-			obj.transform.localPosition = posTemp;
-			plane.transform.localPosition = posTemp + posOffset2;
-			// Quaternion.Euler(90, 0, 0) * 
-			obj.transform.localRotation = rotTemp;
+			plane.transform.localPosition = posTemp + planeOffset;
 			plane.transform.localRotation = Quaternion.Euler(-rotTemp.eulerAngles[0], 0, 0);
 		}
 
