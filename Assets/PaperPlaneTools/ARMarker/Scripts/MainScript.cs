@@ -31,6 +31,7 @@ namespace PaperPlaneTools.AR {
 			public Vector3 posOffset;
 			public Vector3 lastPos;
 			public Quaternion lastRot;
+			public GameObject ownPlane;
 		}
 
 		/// <summary>
@@ -62,18 +63,22 @@ namespace PaperPlaneTools.AR {
 
 		void Start () {
 			markerDetector = new MarkerDetector ();
-			foreach (VirtualObject virtualObject in objects)
-			{
-				foreach (MarkerObject markerObject in virtualObject.markers) {
-					gameObjects.Add(markerObject.markerId, new List<MarkerOnScene>());
-				}
-			}
-			texture = new Texture2D(1280, 720);
 		}
 
 		protected override void Awake() {
 			base.Awake();
 			texture = new Texture2D(1280, 720);
+			foreach (VirtualObject virtualObject in objects)
+			{
+				virtualObject.ownPlane = Instantiate(plane);
+				foreach (MarkerObject markerObject in virtualObject.markers) {
+					if (gameObjects.ContainsKey(markerObject.markerId))
+					{
+						continue;
+					}
+					gameObjects.Add(markerObject.markerId, new List<MarkerOnScene>());
+				}
+			}
 			// int cameraIndex = -1;
 			// for (int i = 0; i < WebCamTexture.devices.Length; i++) {
 			// 	WebCamDevice webCamDevice = WebCamTexture.devices [i];
@@ -120,9 +125,10 @@ namespace PaperPlaneTools.AR {
 			int count = 0;
 			foreach (VirtualObject virtualObject in objects)
 			{
-				List<int> foundedMarkers = new List<int>();
-				foreach (MarkerObject markerObject in virtualObject.markers) {
-					for (int i=0; i<markerIds.Count; i++) {
+				foreach (MarkerObject markerObject in virtualObject.markers) 
+				{
+					List<int> foundedMarkers = new List<int>();
+					for (int i=0; i < markerIds.Count; i++) {
 						if (markerIds[i] == markerObject.markerId) {
 							foundedMarkers.Add(i);
 							count++;
@@ -150,12 +156,14 @@ namespace PaperPlaneTools.AR {
 					posTemp += positions[marker.markerId];
 				}
 				posTemp /= virtualObject.markers.Count;
+				float alpha = 0.5f;
 				if (virtualObject.lastPos != null)
 				{
-					posTemp = posTemp / 2 + virtualObject.lastPos / 2;
+					posTemp = posTemp * alpha + virtualObject.lastPos * (1 - alpha);
 				}
 				virtualObject.lastPos = posTemp;
 				virtualObject.gameObject.transform.position = posTemp + virtualObject.posOffset;
+				virtualObject.ownPlane.transform.position = posTemp + virtualObject.posOffset;
 
 				rotTemp = new Quaternion(0, 0, 0, 0);
 				amount = 0;
@@ -166,92 +174,101 @@ namespace PaperPlaneTools.AR {
 				}
 				if (virtualObject.lastRot != null)
 				{
-					rotTemp = Quaternion.Slerp(rotTemp, virtualObject.lastRot, 1 / 2);
+					rotTemp = Quaternion.Slerp(rotTemp, virtualObject.lastRot, 1 - alpha);
 				}
 				virtualObject.lastRot = rotTemp;
 				virtualObject.gameObject.transform.rotation = rotTemp;
+				virtualObject.ownPlane.transform.rotation = Quaternion.Euler(90, 0, 0) * rotTemp;
 			}
 			
-			posTemp = new Vector3(0, 0, 0);
-			foreach (KeyValuePair<int, Vector3> pos in positions)
-			{
-				posTemp += pos.Value;
-			}
-			posTemp /= positions.Count;
-			rotTemp = new Quaternion(0, 0, 0, 0);
-			amount = 0;
-			foreach (KeyValuePair<int, Quaternion> rot in rotations)
-			{    
-				amount++;			
-				rotTemp = Quaternion.Slerp(rotTemp, rot.Value, 1 / amount);
-			}
-			plane.transform.localPosition = posTemp + planeOffset;
-			plane.transform.localRotation = Quaternion.Euler(-rotTemp.eulerAngles[0], 0, 0);
+			// posTemp = new Vector3(0, 0, 0);
+			// foreach (KeyValuePair<int, Vector3> pos in positions)
+			// {
+			// 	posTemp += pos.Value;
+			// }
+			// posTemp /= positions.Count;
+			// foreach (KeyValuePair<int, Vector3> pos in positions)
+			// {
+			// 	if (pos.Value[1] < posTemp[1])
+			// 	{
+			// 		posTemp[1] = pos.Value[1];
+			// 	}
+			// }
+			// plane.transform.localPosition = posTemp + planeOffset;
+			// rotTemp = new Quaternion(0, 0, 0, 0);
+			// amount = 0;
+			// foreach (KeyValuePair<int, Quaternion> rot in rotations)
+			// {    
+			// 	amount++;			
+			// 	rotTemp = Quaternion.Slerp(rotTemp, rot.Value, 1 / amount);
+			// }
+			// plane.transform.localRotation = Quaternion.Euler(90, 0, 0) * rotTemp;
+			// plane.transform.localRotation = Quaternion.Euler(-rotTemp.eulerAngles[0], 0, 0);
 		}
 
 		private void ProcessMarkesWithSameId(MarkerObject markerObject, List<MarkerOnScene> gameObjects, List<int> foundedMarkers) {
 			int index = 0;
 		
-			index = gameObjects.Count - 1;
-			while (index >= 0) {
-				MarkerOnScene markerOnScene = gameObjects[index];
-				markerOnScene.bestMatchIndex = -1;
-				if (markerOnScene.destroyAt > 0 && markerOnScene.destroyAt < Time.fixedTime) {
-					Destroy(markerOnScene.gameObject);
-					gameObjects.RemoveAt(index);
-				}
-				--index;
-			}
+			// index = gameObjects.Count - 1;
+			// while (index >= 0) {
+			// 	MarkerOnScene markerOnScene = gameObjects[index];
+			// 	markerOnScene.bestMatchIndex = -1;
+			// 	if (markerOnScene.destroyAt > 0 && markerOnScene.destroyAt < Time.fixedTime) {
+			// 		Destroy(markerOnScene.gameObject);
+			// 		gameObjects.RemoveAt(index);
+			// 	}
+			// 	--index;
+			// }
 
 			index = foundedMarkers.Count - 1;
 
 			// Match markers with existing gameObjects
-			while (index >= 0) {
-				int markerIndex = foundedMarkers[index];
-				Matrix4x4 transforMatrix = markerDetector.TransfromMatrixForIndex(markerIndex);
-				Vector3 position = MatrixHelper.GetPosition(transforMatrix);
+			// while (index >= 0) {
+			// 	int markerIndex = foundedMarkers[index];
+			// 	Matrix4x4 transforMatrix = markerDetector.TransfromMatrixForIndex(markerIndex);
+			// 	Vector3 position = MatrixHelper.GetPosition(transforMatrix);
 
-				float minDistance = float.MaxValue;
-				int bestMatch = -1;
-				for (int i=0; i<gameObjects.Count; i++) {
-					MarkerOnScene markerOnScene = gameObjects [i];
-					if (markerOnScene.bestMatchIndex >= 0) {
-						continue;
-					}
-					float distance = Vector3.Distance(markerOnScene.gameObject.transform.position, position);
-					if (distance<minDistance) {
-						bestMatch = i;
-					}
-				}
+			// 	float minDistance = float.MaxValue;
+			// 	int bestMatch = -1;
+			// 	for (int i=0; i<gameObjects.Count; i++) {
+			// 		MarkerOnScene markerOnScene = gameObjects [i];
+			// 		if (markerOnScene.bestMatchIndex >= 0) {
+			// 			continue;
+			// 		}
+			// 		float distance = Vector3.Distance(markerOnScene.gameObject.transform.position, position);
+			// 		if (distance<minDistance) {
+			// 			bestMatch = i;
+			// 		}
+			// 	}
 
-				if (bestMatch >=0) {
-					gameObjects[bestMatch].bestMatchIndex = markerIndex;
-					foundedMarkers.RemoveAt(index);
-				} 
-				--index;
-			}
+			// 	if (bestMatch >=0) {
+			// 		gameObjects[bestMatch].bestMatchIndex = markerIndex;
+			// 		foundedMarkers.RemoveAt(index);
+			// 	} 
+			// 	--index;
+			// }
 
 			//Destroy excessive objects
-			index = gameObjects.Count - 1;
-			while (index >= 0) {
-				MarkerOnScene markerOnScene = gameObjects[index];
-				if (markerOnScene.bestMatchIndex < 0) {
-					if (markerOnScene.destroyAt < 0) {
-						markerOnScene.destroyAt = Time.fixedTime + 0.2f;
-					}
-				} else {
-					markerOnScene.destroyAt = -1f;
-					int markerIndex = markerOnScene.bestMatchIndex;
-					Matrix4x4 transforMatrix = markerDetector.TransfromMatrixForIndex(markerIndex);
-					Matrix4x4 matrixY = Matrix4x4.TRS (Vector3.zero, Quaternion.identity, new Vector3 (1, -1, 1));
-					Matrix4x4 matrixZ = Matrix4x4.TRS (Vector3.zero, Quaternion.identity, new Vector3 (1, 1, -1));
-					Matrix4x4 matrix = matrixY * transforMatrix * matrixZ;
-					positions[markerObject.markerId] = MatrixHelper.GetPosition (matrix);
-					rotations[markerObject.markerId] = MatrixHelper.GetQuaternion (matrix);
-					// PositionObject(markerOnScene.gameObject, transforMatrix);
-				}
-				index--;
-			}
+			// index = gameObjects.Count - 1;
+			// while (index >= 0) {
+			// 	MarkerOnScene markerOnScene = gameObjects[index];
+			// 	if (markerOnScene.bestMatchIndex < 0) {
+			// 		if (markerOnScene.destroyAt < 0) {
+			// 			markerOnScene.destroyAt = Time.fixedTime + 0.2f;
+			// 		}
+			// 	} else {
+			// 		markerOnScene.destroyAt = -1f;
+			// 		int markerIndex = markerOnScene.bestMatchIndex;
+			// 		Matrix4x4 transforMatrix = markerDetector.TransfromMatrixForIndex(markerIndex);
+			// 		Matrix4x4 matrixY = Matrix4x4.TRS (Vector3.zero, Quaternion.identity, new Vector3 (1, -1, 1));
+			// 		Matrix4x4 matrixZ = Matrix4x4.TRS (Vector3.zero, Quaternion.identity, new Vector3 (1, 1, -1));
+			// 		Matrix4x4 matrix = matrixY * transforMatrix * matrixZ;
+			// 		positions[markerObject.markerId] = MatrixHelper.GetPosition (matrix);
+			// 		rotations[markerObject.markerId] = MatrixHelper.GetQuaternion (matrix);
+			// 		// PositionObject(markerOnScene.gameObject, transforMatrix);
+			// 	}
+			// 	index--;
+			// }
 
 			//Create objects for markers not matched with any game object
 			foreach (int markerIndex in foundedMarkers) {
@@ -272,6 +289,7 @@ namespace PaperPlaneTools.AR {
 				else 
 				{
 					positions[markerObject.markerId] = MatrixHelper.GetPosition (matrix);
+					// positions[markerObject.markerId] = (positions[markerObject.markerId] + MatrixHelper.GetPosition (matrix)) / 2;
 				}
 				if (!rotations.ContainsKey(markerObject.markerId))
 				{
@@ -280,6 +298,7 @@ namespace PaperPlaneTools.AR {
 				else 
 				{
 					rotations[markerObject.markerId] = MatrixHelper.GetQuaternion (matrix);
+					// rotations[markerObject.markerId] = Quaternion.Slerp(rotations[markerObject.markerId], MatrixHelper.GetQuaternion (matrix), 1 / 2);
 				}
 				// PositionObject(markerOnScene.gameObject, transforMatrix);
 			}

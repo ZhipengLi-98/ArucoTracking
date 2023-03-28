@@ -37,7 +37,7 @@
 			// 	{0d, 0d, 1d}
 			// };
 
-			// double[] distCoeffs = new double[4] {0.066d, -0.2621d, -0.0026d, -0.0015d};
+			// double[] distCoeffs = new double[5] {0.066d, -0.2621d, -0.0026d, -0.0015d, 0.2814};
 
 			double[,] cameraMatrix = new double[3, 3] {
 				{930.21, 0d, 627.27},
@@ -45,7 +45,7 @@
 				{0d, 0d, 1d}
 			};
 
-			double[] distCoeffs = new double[4] {0.063d, -0.3071d, 0.0028d, 0.0009d};
+			double[] distCoeffs = new double[5] {0.063d, -0.3071d, 0.0028d, 0.0001d, 0.4746};
 
 			List<int> result = new List<int> ();
 			markerTransforms.Clear ();
@@ -68,7 +68,7 @@
 			// Detect markers
 			CvAruco.DetectMarkers (grayMat, dictionary, out corners, out ids, detectorParameters, out rejectedImgPoints);
 
-			CvAruco.DrawDetectedMarkers (mat, corners, ids);
+			// CvAruco.DrawDetectedMarkers (mat, corners, ids);
 
 			float markerSizeInMeters = 1f;
 
@@ -88,7 +88,7 @@
 
 				Cv2.SolvePnP(markerPoints, corners[i], cameraMatrix, distCoeffs, out rvec, out tvec, false, SolvePnPFlags.Iterative);
 
-				CvAruco.DrawAxis(mat, cameraMatrix, distCoeffs, rvec, tvec, 1.0f);
+				// CvAruco.DrawAxis(mat, cameraMatrix, distCoeffs, rvec, tvec, 1.0f);
 				Cv2.Rodrigues (rvec, out rotMat);
 				Matrix4x4 matrix = new Matrix4x4();
 				matrix.SetRow(0, new Vector4((float)rotMat[0, 0], (float)rotMat[0, 1], (float)rotMat[0, 2], (float)tvec[0]));
